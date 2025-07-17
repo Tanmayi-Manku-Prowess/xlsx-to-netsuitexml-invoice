@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:excel="http://www.mulesoft.org/schema/mule/excel" xmlns:microsoftOneDrive="http://www.mulesoft.org/schema/mule/microsoftOneDrive"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:google-drive="http://www.mulesoft.org/schema/mule/google-drive" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/google-drive http://www.mulesoft.org/schema/mule/google-drive/current/mule-google-drive.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/microsoftOneDrive http://www.mulesoft.org/schema/mule/microsoftOneDrive/current/mule-microsoftOneDrive.xsd
+http://www.mulesoft.org/schema/mule/excel http://www.mulesoft.org/schema/mule/excel/current/mule-excel.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="1f9d0395-5a5f-4d62-9202-ba3060c58c8f" file="config-local.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e541f081-67a4-4d68-82fa-6b969dfd7cea" >
+		<http:listener-connection host="${experience.http.host}" port="${experience.http.port}" />
+	</http:listener-config>
+	<excel:authorization-code-config name="Microsoft_Excel_Online_Authorization_Code_Config" doc:name="Microsoft Excel Online Authorization Code Config" doc:id="e406b587-4aad-4087-bdfd-e0f2fe60bc78" >
+		<excel:oauth-authorization-code-connection >
+			<excel:oauth-authorization-code consumerKey="ce68aff2-4ea2-47aa-ab29-29fb20333ebf" consumerSecret="r-l8Q~0z~PWouLFHgETKm3Q96OKerMEJK0RYnbbm" authorizationUrl="https://login.microsoftonline.com/20d2e0ad-c73d-48b8-b253-0b6266dfacc9/oauth2/v2.0/authorize" accessTokenUrl="https://login.microsoftonline.com/20d2e0ad-c73d-48b8-b253-0b6266dfacc9/oauth2/v2.0/token" resourceOwnerId="testuser"/>
+			<excel:oauth-callback-config listenerConfig="HTTP_Listener_config" callbackPath="/onedrive-callback" authorizePath="/authorize-onedrive" externalCallbackUrl="http://localhost:8081/onedrive-callback"/>
+		</excel:oauth-authorization-code-connection>
+	</excel:authorization-code-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="721ff705-2b3b-4488-b5b1-8a63729e6108" >
+		<http:request-connection host="${experience.request.host}" port="${experience.request.port}" />
+	</http:request-config>
+</mule>

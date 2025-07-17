@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:excel="http://www.mulesoft.org/schema/mule/excel" xmlns:microsoftOneDrive="http://www.mulesoft.org/schema/mule/microsoftOneDrive"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:google-drive="http://www.mulesoft.org/schema/mule/google-drive" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/google-drive http://www.mulesoft.org/schema/mule/google-drive/current/mule-google-drive.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/microsoftOneDrive http://www.mulesoft.org/schema/mule/microsoftOneDrive/current/mule-microsoftOneDrive.xsd
+http://www.mulesoft.org/schema/mule/excel http://www.mulesoft.org/schema/mule/excel/current/mule-excel.xsd">
+	<flow name="netsuitexml-experience-apiFlow" doc:id="4c924eb7-0f6e-4217-8452-cc920d1632a0" >
+		<http:listener doc:name="Listener" doc:id="9f4fdf0d-6bd2-4896-a57a-13c54c2ef226" config-ref="HTTP_Listener_config" path="/execute"/>
+		<http:request method="GET" doc:name="Request" doc:id="7935ae57-7692-4307-97af-c1fd23e363f9" config-ref="HTTP_Request_configuration" path="${experience.request.endpoint}"/>
+		<ee:transform doc:name="Final Response after parsing" doc:id="fcd8b265-a515-40a5-a4e5-f15009c99361" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalerrorsError_Handler" />
+	</flow>
+</mule>

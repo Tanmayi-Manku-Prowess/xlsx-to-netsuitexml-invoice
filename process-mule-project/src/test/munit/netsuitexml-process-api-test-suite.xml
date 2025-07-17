@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:google-drive="http://www.mulesoft.org/schema/mule/google-drive" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/google-drive http://www.mulesoft.org/schema/mule/google-drive/current/mule-google-drive.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<munit:config name="netsuitexml-process-api-test-suite.xml" />
+
+	<munit:test name="netsuitexml-process-api-test-suite-netsuitexml-process-apiFlowTest" doc:id="ae49f8a4-22b0-4452-9085-5301249337e4" description="Test the process flow for reading Excel, transforming to XML, and preparing for Google Drive upload">
+		<munit:behavior >
+			<!-- Mock google-drive:get-files (doc:id="dde1debc-fabe-4dd8-b01b-2d17bd81c7ed") -->
+			<munit-tools:mock-when doc:name="Mock Get Files List"
+			                       processor="google-drive:get-files">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2317d598-19b5-4edb-b4fe-66276cb39030" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<!-- Mock payload for the list of files, including Sample_Invoice_Data.xlsx -->
+					<munit-tools:payload value='#[%dw 2.0 output application/json --- [
+                        {"kind": "drive#file", "id": "otherFileId1", "name": "SomeOtherFile.txt", "mimeType": "text/plain"},
+                        {"kind": "drive#file", "id": "mockExcelFileId123", "name": "Sample_Invoice_Data.xlsx", "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+                        {"kind": "drive#file", "id": "otherFileId2", "name": "AnotherDoc.pdf", "mimeType": "application/pdf"}
+                    ]]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+
+			<!-- Mock google-drive:get-files-by-file-id (doc:id="b5823212-44bf-46f7-937a-da949ac38603") -->
+			<munit-tools:mock-when doc:name="Mock Get Excel File Content"
+			                       processor="google-drive:get-files-by-file-id">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Google_Drive_Connector_Config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[(MunitTools::getResourceAsString("Sample_Invoice_Data_Mock.json"))]' mediaType="application/json" />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+
+			<!-- Mock google-drive:create-media-file (doc:id="88d005e4-4edd-4c4e-8841-82c9b4df6170") -->
+			<munit-tools:mock-when doc:name="Mock Create Media File"
+			                       processor="google-drive:create-media-file">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="bbae8788-26fb-4b86-9e81-2d1e1d60aacd" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<!-- Mock response from Google Drive after successful file creation -->
+					<munit-tools:payload value='#[%dw 2.0 output application/json --- {"kind": "drive#file", "id": "newMockFileId456", "name": "mock_generated_invoice.xml", "mimeType": "application/xml"}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+
+		</munit:behavior>
+		<munit:execution >
+			<!-- Trigger the process flow. No initial payload needed as it starts with HTTP Listener -->
+			<flow-ref doc:name="Flow-ref to netsuitexml-process-apiFlow" doc:id="749a2b4f-7682-416c-a493-691254aac907" name="netsuitexml-process-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<!-- Verify that the sampleDataExcelFileId variable was correctly set -->
+			<munit-tools:assert-that doc:name="Assert sampleDataExcelFileId Variable"
+			                         expression="#[vars.sampleDataExcelFileId]"
+			                         is="#[MunitTools::equalTo('mockExcelFileId123')]" />
+
+			<!-- Verify that the parsedInvoiceXml variable was correctly set and contains expected XML -->
+			<munit-tools:assert-that doc:name="Assert parsedInvoiceXml Variable Not Null"
+			                         expression="#[vars.parsedInvoiceXml]"
+			                         is="#[MunitTools::notNullValue()]" />
+
+
+			<!-- Verify google-drive:get-files was called -->
+
+			<!-- Verify google-drive:get-files-by-file-id was called with the correct fileId -->
+
+			<!-- Verify google-drive:create-media-file was called with the expected content type and fields -->
+
+            <!-- Assert the final payload is the mock response from create-media-file -->
+		</munit:validation>
+	</munit:test>
+
+</mule>

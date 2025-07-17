@@ -1,0 +1,13 @@
+process:
+    http:
+        host: "localhost"
+        port: "8081"
+        endpoint: "/generate-xml-invoice"
+        
+    google:
+        key: "736602309399-hd1eu0n6kohns7631a2g01v5d7eqb0u6.apps.googleusercontent.com"
+        secret: "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"
+        resourceOwnerId: "testuser"
+        callbackpath: "/callback"
+        authorizepath: "/authorize"
+        callbackurl: "http://localhost:8081/callback"

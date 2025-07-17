@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+	<munit:config name="netsuitexml-experience-api-test-suite.xml" />
+
+	<munit:test name="netsuitexml-experience-api-test-suite-netsuitexml-experience-apiFlowTest" doc:id="ebb0da54-40f0-4933-896e-4a3383bd6a30" description="Test that experience flow calls process API and returns its XML response">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP Request to Process API"
+			                       processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7935ae57-7692-4307-97af-c1fd23e363f9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#['&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;root&gt;&#10;    &lt;status&gt;success&lt;/status&gt;&#10;    &lt;message&gt;Mocked XML response from Process API&lt;/message&gt;&#10;&lt;/root&gt;']" mediaType="application/xml" />
+				</munit-tools:then-return>	
+            
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to netsuitexml-experience-apiFlow" doc:id="0417c4c2-530f-45fe-8fac-4258b7182de8" name="netsuitexml-experience-apiFlow"/>
+		</munit:execution>
+		<munit:validation >
+
+			<munit-tools:assert-that doc:name="Assert Final Payload is Not Null" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+        </munit:validation>
+	</munit:test>
+
+</mule>

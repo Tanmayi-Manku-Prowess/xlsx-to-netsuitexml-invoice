@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="globalerrorsError_Handler" doc:id="e6ce531d-4420-4c6b-a5e8-db7db8937e38" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Handle Google drive connector connectivity error" doc:id="1b5e62c7-b123-4ca2-89e1-4c1102a83bab" type="GOOGLE-DRIVE:CONNECTIVITY">
+		<logger level="ERROR" doc:name="Log the error faced" doc:id="ad402d5c-8fd3-40e9-a222-b0d72b859a50" message="#[error]"/>
+			<set-variable value="500" doc:name="httpStatus" doc:id="0b78cbeb-d5ae-48d7-9d52-989573246eb6" variableName="httpStatus"/>
+			<ee:transform doc:name="Set Error Response" doc:id="ac093b30-afee-41db-be4e-a77963d4f1d3" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Flow Execution failed due to google-drive connectivity error, check with access to google drive link."
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Log set Response" doc:id="1b618694-caf3-4b09-9c88-79fa019cc509" message="#[payload]"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Handle Google drive connector drive not found" doc:id="168c18e3-2670-4d13-a220-c1649edddfb7" type="GOOGLE-DRIVE:NOT_FOUND">
+		<logger level="ERROR" doc:name="Log the error faced" doc:id="a97a259c-4900-473b-8936-c5e492246004" message="#[error]"/>
+			<set-variable value="404" doc:name="httpStatus" doc:id="15bbaf05-63ef-47e5-95d9-68aaed59ee9a" variableName="httpStatus"/>
+			<ee:transform doc:name="Set Error Response" doc:id="21f733c1-ba9f-409f-b054-f813f98aceaa" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Flow Execution failed due to resource from google-drive is not found, check with exact resource to use."
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Log set Response" doc:id="fd3573ce-c30c-4edf-99fa-05fe10c18177" message="#[payload]"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Handle Generic Error" doc:id="5dc012f8-c629-4908-bd88-6cee7641ee56" type="ANY">
+		<logger level="ERROR" doc:name="Log the error faced" doc:id="a8ca334e-55de-4ac2-ac77-9d84e4c10e10" message="#[error]"/>
+			<set-variable value="500" doc:name="httpStatus" doc:id="00cf5ab6-d166-4efe-ae4a-f8cb576786e3" variableName="httpStatus"/>
+			<ee:transform doc:name="Set Error Response" doc:id="c3f138f8-c441-4b67-a88a-75a6a0edfd78" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Flow Execution failed due to an error, check logs for error description."
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Log set Response" doc:id="fe795f26-36ac-487c-b405-3dc5d010d45c" message="#[payload]"/>
+		</on-error-propagate>
+	</error-handler>
+</mule>

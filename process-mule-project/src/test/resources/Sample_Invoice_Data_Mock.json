@@ -1,0 +1,46 @@
+{
+    "Sheet1": [
+        {
+            "externalId": "MOCK-INV-001",
+            "entity_internalId": 393878,
+            "memo": "MOCK Peru Trip 2024",
+            "customForm_internalId": 220,
+            "department_internalId": 2,
+            "account_internalId": 119,
+            "account_name": "International Trip Registration",
+            "currency_internalId": 1,
+            "exchangeRate": 1,
+            "tranDate": "2025-01-17",
+            "postingPeriod_internalId": 141,
+            "item_internalId": 11652,
+            "quantity": 2,
+            "description": "MOCK Item Description",
+            "location_internalId": 206,
+            "amount": 200,
+            "custcol1": "MOCK_COL1_VAL",
+            "custcol2": "MOCK_COL2_VAL",
+            "custbodyinvoice_id": "MOCK-BODY-INV-001"
+        },
+        {
+            "externalId": "MOCK-INV-002",
+            "entity_internalId": 393879,
+            "memo": "MOCK Japan Trip 2025",
+            "customForm_internalId": 221,
+            "department_internalId": 3,
+            "account_internalId": 120,
+            "account_name": "International Trip Registration",
+            "currency_internalId": 1,
+            "exchangeRate": 1,
+            "tranDate": "2025-02-20",
+            "postingPeriod_internalId": 142,
+            "item_internalId": 11653,
+            "quantity": 1,
+            "description": "MOCK Item Description 2",
+            "location_internalId": 207,
+            "amount": 500,
+            "custcol1": "MOCK_COL1_VAL_2",
+            "custcol2": "MOCK_COL2_VAL_2",
+            "custbodyinvoice_id": "MOCK-BODY-INV-002"
+        }
+    ]
+}

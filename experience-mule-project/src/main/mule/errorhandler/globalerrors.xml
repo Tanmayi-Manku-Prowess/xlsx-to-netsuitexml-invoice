@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="globalerrorsError_Handler" doc:id="86f984f7-6651-43cd-b4cc-1f920bd6d4c7" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Handle HTTP Connectivity error" doc:id="db343469-7880-4df7-ad4c-092563eb0109" type="HTTP:CONNECTIVITY">
+			<logger level="ERROR" doc:name="Log the error faced" doc:id="5d640027-1ed9-4fd1-88b3-f76bc9088db8" message="#[error]"/>
+			<set-variable value="500" doc:name="httpStatus" doc:id="98b5c9d4-aa4d-44cf-b5fb-d41d978f3134" variableName="httpStatus"/>
+			<ee:transform doc:name="Set Error Response" doc:id="d68d6e5a-825a-4aa6-b6a5-db3aa9aa80cf" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Flow Execution failed due to http connectivity error, check with listener and request ports."
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Log set Response" doc:id="25ee456f-ced3-4057-9ab1-a21e17e2b0e5" message="#[payload]"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Handle Error from Flow" doc:id="8c9bd198-eba1-4439-a7a6-a402e31ae274" type="ANY">
+			<logger level="ERROR" doc:name="Log the error faced" doc:id="9e44ac38-fb64-4e79-9b6a-e07a45b9464b" message="#[error]"/>
+			<set-variable value="500" doc:name="httpStatus" doc:id="f9d79f6b-9e70-4a89-b815-2ae9d4e6c663" variableName="httpStatus"/>
+			<ee:transform doc:name="Set Error Response" doc:id="b0bce9d2-a314-4919-afb5-7e2936aeea3e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "FAILED",
+  statusCode: vars.httpStatus,
+  errorType: error.errorType.identifier,
+  exceptionReason: error.description,
+  message: "Flow execution failed due to an error, check error description."
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Log set Response" doc:id="cd329b9a-a41f-401b-b227-64efaeae61de" />
+		</on-error-propagate>
+	</error-handler>
+</mule>

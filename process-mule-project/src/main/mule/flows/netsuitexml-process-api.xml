@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:google-drive="http://www.mulesoft.org/schema/mule/google-drive"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/google-drive http://www.mulesoft.org/schema/mule/google-drive/current/mule-google-drive.xsd">
+	<flow name="netsuitexml-process-apiFlow" doc:id="24642f4f-14d5-4eab-a52b-b502506ed346" >
+		<http:listener doc:name="Listener" doc:id="e80104a2-82ef-484d-961e-d52da97353ce" config-ref="HTTP_Listener_config" path="${process.http.endpoint}"/>
+		<google-drive:get-files doc:name="Get List of Files from Drive" doc:id="2317d598-19b5-4edb-b4fe-66276cb39030" config-ref="Google_Drive_Connector_Config"/>
+		<logger level="INFO" doc:name="Log the List of Data from Drive" doc:id="40f8ce17-ac04-4e1a-aaa3-11f6642a6cc5" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"listOfFilesFromDrive": payload&#10;}]'/>
+		<set-variable value="#[(payload filter ((item) -&gt; item.name == 'Sample_Invoice_Data.xlsx'))[0].id]" doc:name="sampleDataExcelFileId" doc:id="f8fc3c4a-f85e-4331-84a8-d41b53e636e5" variableName="sampleDataExcelFileId"/>
+		<google-drive:get-files-by-file-id doc:name="Get Sample_Inovice_data.xlsx file" doc:id="e836d2e2-96c5-467a-8b95-5175b7b9af85" config-ref="Google_Drive_Connector_Config" target="excelData" alt="MEDIA" fileId="#[vars.sampleDataExcelFileId]">
+			<google-drive:custom-query-params ><![CDATA[#[output application/java
+---
+{
+	"supportsAllDrives" : true
+}]]]></google-drive:custom-query-params>
+		</google-drive:get-files-by-file-id>
+		<logger level="INFO" doc:name="Log Excel File Content from Drive" doc:id="0e9a8a48-4c93-44fb-8dcf-789902ff1d7d" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"InoviceDataFromExcel": vars.excelData&#10;}]'/>
+		<ee:transform doc:name="Parse Excel JSON Data to Netsuite XML" doc:id="2b7f7ea5-5312-4b6a-b484-c5f0f715bfd8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns add urn:messages_2021_1.platform.webservices.netsuite.com
+ns tranSales urn:sales_2021_1.transactions.webservices.netsuite.com
+ns ns02 urn:core.platform.webservices.netsuite.com
+ns xsi http://www.w3.org/2001/XMLSchema-instance
+
+var invoices = vars.excelData.Sheet1
+---
+add#upsertList: {
+    add#record: invoices map (invoice) -> {
+        '@xsi:type': "tranSales:Invoice",
+        '@externalId': invoice.externalId,
+        tranSales#entity @(internalId: invoice.entity_internalId): null,
+        tranSales#memo: invoice.memo,
+        tranSales#customForm @(internalId: invoice.customForm_internalId): null,
+        tranSales#department @(internalId: invoice.department_internalId): null,
+        tranSales#account @(internalId: invoice.account_internalId): "International Trip Registration",
+        tranSales#currency @(internalId: invoice.currency_internalId): null,
+        tranSales#exchangeRate: invoice.exchangeRate,
+        tranSales#tranDate: invoice.tranDate,
+        tranSales#customFieldList: {
+            ns02#customField @('xsi:type': "ns02:StringCustomFieldRef", scriptId: "custbodyinvoice_id"): {
+                ns02#value: invoice.custbodyinvoice_id
+            }
+        },
+        tranSales#postingPeriod @(internalId: invoice.postingPeriod_internalId): null,
+        tranSales#itemList: {
+            tranSales#item: {
+                tranSales#item @(internalId: invoice.item_internalId): null,
+                tranSales#quantity: invoice.quantity,
+                tranSales#description: invoice.description,
+                tranSales#location @(internalId: invoice.location_internalId): null,
+                tranSales#amount: invoice.amount,
+                tranSales#customFieldList: {
+                    ns02#customField @('xsi:type': "ns02:StringCustomFieldRef", scriptId: "custcol1"): {
+                        ns02#value: invoice.custcol1
+                    },
+                    ns02#customField @('xsi:type': "ns02:StringCustomFieldRef", scriptId: "custcol2"): {
+                        ns02#value: invoice.custcol2
+                    }
+                }
+            }
+        }
+    }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log the final output" doc:id="fdd8ef82-a1b7-445d-8bea-2cd51707fcd1" message="#[payload]"/>
+		<set-variable value="#[payload]" doc:name="parsedInvoiceXml" doc:id="6f389f7d-f7db-4ed5-adc5-caa7ffcf59f2" variableName="parsedInvoiceXml"/>
+		<google-drive:create-media-file doc:name="Create media file with netsuitexml format" doc:id="bbae8788-26fb-4b86-9e81-2d1e1d60aacd" config-ref="Google_Drive_Connector_Config" contentType="application/xml">
+		</google-drive:create-media-file>
+		<ee:transform doc:name="NetSuiteXml Invoices'" doc:id="3f5fd6fc-917d-435c-84ff-08322e338e1f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[vars.parsedInvoiceXml]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="globalerrorsError_Handler" />
+	</flow>
+</mule>

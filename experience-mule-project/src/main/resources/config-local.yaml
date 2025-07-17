@@ -1,0 +1,9 @@
+experience:
+    http:
+        host: "localhost"
+        port: "8082"
+        
+    request:
+      host: "localhost"
+      port: "8081"
+      endpoint: "/generate-xml-invoice"
